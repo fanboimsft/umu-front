@@ -186,6 +186,9 @@ func launchGame(g Game) {
 		cmd.Env = append(cmd.Env, "GAMEID=umu-"+g.ID)
 		cmd.Env = append(cmd.Env, "STORE=steam")
 	}
+	if g.DLLOverrides != "" {
+		cmd.Env = append(cmd.Env, "WINEDLLOVERRIDES="+g.DLLOverrides)
+	}
 
 	// We attach stdout/stderr to the main process so we can debug umu-run
 	cmd.Stdout = os.Stdout
@@ -230,6 +233,7 @@ func showAddGameDialog() {
 	execPathEntry := widget.NewEntry()
 	prefixEntry := widget.NewEntry()
 	imgEntry := widget.NewEntry()
+	dllOverridesEntry := widget.NewEntry()
 
 	protonVersions := getProtonVersions()
 	protonSelect := widget.NewSelect(protonVersions, nil)
@@ -313,12 +317,13 @@ func showAddGameDialog() {
 		widget.NewFormItem("Wine Prefix", container.NewBorder(nil, nil, nil, prefixBtn, prefixEntry)),
 		widget.NewFormItem("Proton Version", protonSelect),
 		widget.NewFormItem("Custom Image", container.NewBorder(nil, nil, nil, imgBtn, imgEntry)),
+		widget.NewFormItem("DLL Overrides", dllOverridesEntry),
 	}, func(ok bool) {
 		if ok {
-			saveNewGame(nameEntry.Text, execPathEntry.Text, prefixEntry.Text, protonSelect.Selected, imgEntry.Text)
+			saveNewGame(nameEntry.Text, execPathEntry.Text, prefixEntry.Text, protonSelect.Selected, imgEntry.Text, dllOverridesEntry.Text)
 		}
 	}, myWin)
-	form.Resize(fyne.NewSize(600, 450))
+	form.Resize(fyne.NewSize(600, 500))
 	form.Show()
 }
 
@@ -334,6 +339,9 @@ func showEditGameDialog(index int, g Game) {
 
 	imgEntry := widget.NewEntry()
 	imgEntry.SetText(g.ImageURL)
+
+	dllOverridesEntry := widget.NewEntry()
+	dllOverridesEntry.SetText(g.DLLOverrides)
 
 	protonVersions := getProtonVersions()
 	protonSelect := widget.NewSelect(protonVersions, nil)
@@ -379,6 +387,7 @@ func showEditGameDialog(index int, g Game) {
 		widget.NewFormItem("Wine Prefix", container.NewBorder(nil, nil, nil, prefixBtn, prefixEntry)),
 		widget.NewFormItem("Proton Version", protonSelect),
 		widget.NewFormItem("Custom Image", container.NewBorder(nil, nil, nil, imgBtn, imgEntry)),
+		widget.NewFormItem("DLL Overrides", dllOverridesEntry),
 	}, func(ok bool) {
 		if ok {
 			imgURL := imgEntry.Text
@@ -396,16 +405,17 @@ func showEditGameDialog(index int, g Game) {
 			games[index].Prefix = prefixEntry.Text
 			games[index].ProtonVer = protonSelect.Selected
 			games[index].ImageURL = imgURL
+			games[index].DLLOverrides = dllOverridesEntry.Text
 
 			saveGames(games)
 			refreshGrid()
 		}
 	}, myWin)
-	form.Resize(fyne.NewSize(600, 480))
+	form.Resize(fyne.NewSize(600, 530))
 	form.Show()
 }
 
-func saveNewGame(name, execPath, prefix, protonVer, customImg string) {
+func saveNewGame(name, execPath, prefix, protonVer, customImg, dllOverrides string) {
 	// Let's do a search just to see if we can get an ID natively if they didn't use the search button perfectly
 	var gameID string
 	var imgPath string
@@ -439,12 +449,13 @@ func saveNewGame(name, execPath, prefix, protonVer, customImg string) {
 	}
 
 	game := Game{
-		ID:        gameID,
-		Name:      name,
-		ExecPath:  execPath,
-		Prefix:    prefix,
-		ProtonVer: protonVer,
-		ImageURL:  imgPath,
+		ID:           gameID,
+		Name:         name,
+		ExecPath:     execPath,
+		Prefix:       prefix,
+		ProtonVer:    protonVer,
+		ImageURL:     imgPath,
+		DLLOverrides: dllOverrides,
 	}
 
 	games = append(games, game)

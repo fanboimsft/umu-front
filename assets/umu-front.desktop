@@ -1,0 +1,11 @@
+[Desktop Entry]
+GenericName=Umu-Front
+Name=Umu-Front
+Comment=umu-run frontend
+Exec=umu-front -b %U
+StartupNotify=true
+Icon=knotepad
+Type=Application
+InitialPreference=9
+Categories=Games
+Keywords=games
